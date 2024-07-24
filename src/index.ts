@@ -12,7 +12,9 @@
  */
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<ReturnType<typeof fetch>> {
+		const response = await fetch(request);
+		console.log(response.headers.get("Location"));
+		return response;
 	},
-} satisfies ExportedHandler<Env>;
+}
