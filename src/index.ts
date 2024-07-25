@@ -12,7 +12,13 @@
  */
 
 export default {
-	async fetch(request): Promise<Response> {
-		return fetch(request);
+	async fetch(request) {
+		const response = await fetch(request);
+
+		// @TODO When there is a cache MISS *and* the response has tags, push an insert into the queue.
+		console.log("URL", response.url);
+		console.log("CACHE", response.headers.get("CF-Cache-Status"));
+
+		return response;
 	},
 } satisfies ExportedHandler<Env>;
