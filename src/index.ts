@@ -12,7 +12,7 @@
  */
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request): Promise<Response> {
 		return fetch(request);
 	},
 } satisfies ExportedHandler<Env>;
