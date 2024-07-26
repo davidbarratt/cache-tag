@@ -30,5 +30,8 @@
 	},
 	"lint-staged": {
 		"**/*": "prettier --write --ignore-unknown"
+	},
+	"dependencies": {
+		"tracking-query-params-registry": "github:mpchadwick/tracking-query-params-registry"
 	}
 }
