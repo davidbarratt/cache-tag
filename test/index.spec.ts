@@ -1,30 +1,37 @@
-// test/index.spec.ts
-import {
-	env,
-	createExecutionContext,
-	waitOnExecutionContext,
-	SELF,
-} from "cloudflare:test";
-import { describe, it, expect } from "vitest";
-import worker from "../src/index";
+import { SELF, env, fetchMock } from "cloudflare:test";
+import { beforeAll, afterEach, it, expect, vi } from "vitest";
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+// const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
 
-describe("Hello World worker", () => {
-	it("responds with Hello World! (unit style)", async () => {
-		const request = new IncomingRequest("http://example.com");
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
+beforeAll(() => {
+	fetchMock.activate();
+});
+afterEach(() => {
+	fetchMock.assertNoPendingInterceptors();
+});
 
-	it("responds with Hello World! (integration style)", async () => {
-		const response = await SELF.fetch("https://example.com");
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
-	});
+it("adds cache tags to the capture queue", async () => {
+	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
+
+	fetchMock
+		.get("https://example.com")
+		.intercept({ path: "/" })
+		.reply(200, "", {
+			headers: {
+				"CF-Cache-Status": "MISS",
+				"X-Cache-Tag": "test",
+			},
+		});
+
+	await SELF.fetch("https://example.com");
+
+	expect(sendSpy).toBeCalledWith(
+		{
+			url: "", // I hate that this is empty, but I don't see a good way to mock it.
+			tags: ["test"],
+		},
+		{ contentType: "json" },
+	);
 });
