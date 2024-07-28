@@ -35,3 +35,56 @@ it("adds cache tags to the capture queue", async () => {
 		{ contentType: "json" },
 	);
 });
+
+it("passes when CF-Cache-Status is something other than MISS", async () => {
+	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
+
+	fetchMock
+		.get("https://example.com")
+		.intercept({ path: "/" })
+		.reply(200, "", {
+			headers: {
+				"CF-Cache-Status": "DYNAMIC",
+				"X-Cache-Tag": "test",
+			},
+		});
+
+	await SELF.fetch("https://example.com");
+
+	expect(sendSpy).not.toBeCalled();
+});
+
+it("passes when X-Cache-Tag is not set", async () => {
+	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
+
+	fetchMock
+		.get("https://example.com")
+		.intercept({ path: "/" })
+		.reply(200, "", {
+			headers: {
+				"CF-Cache-Status": "DYNAMIC",
+			},
+		});
+
+	await SELF.fetch("https://example.com");
+
+	expect(sendSpy).not.toBeCalled();
+});
+
+it("passes when X-Cache-Tag is empty", async () => {
+	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
+
+	fetchMock
+		.get("https://example.com")
+		.intercept({ path: "/" })
+		.reply(200, "", {
+			headers: {
+				"CF-Cache-Status": "DYNAMIC",
+				"X-Cache-Tag": "",
+			},
+		});
+
+	await SELF.fetch("https://example.com");
+
+	expect(sendSpy).not.toBeCalled();
+});
