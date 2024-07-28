@@ -1,34 +1,14 @@
 {
-	"name": "cache-tag",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev --local-upstream davidwbarratt.com --upstream-protocol https --remote",
-		"test": "vitest",
-		"cf-typegen": "wrangler types",
-		"prepare": "husky"
-	},
+  "name": "cache-tag",
+  "description": "Cache Tag Cloudflare Workers",
+  "license": "AGPL-3.0-or-later",
+	"workspaces": ["workers/producer"],
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.4.5",
-		"@cloudflare/workers-types": "^4.20240722.0",
-		"@eslint/js": "^9.7.0",
-		"@types/eslint__js": "^8.42.3",
-		"@types/eslint-config-prettier": "^6.11.3",
-		"eslint": "^8.57.0",
-		"eslint-config-prettier": "^9.1.0",
 		"husky": "^9.1.1",
 		"lint-staged": "^15.2.7",
-		"prettier": "^3.3.3",
-		"typescript": "^5.5.4",
-		"typescript-eslint": "^7.17.0",
-		"vitest": "^1.5.0",
-		"wrangler": "^3.66.0"
+		"prettier": "^3.3.3"
 	},
 	"lint-staged": {
 		"**/*": "prettier --write --ignore-unknown"
 	},
-	"dependencies": {
-		"tracking-query-params-registry": "github:mpchadwick/tracking-query-params-registry"
-	}
 }
