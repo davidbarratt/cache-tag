@@ -1,8 +1,10 @@
 {
-  "name": "cache-tag",
-  "description": "Cache Tag Cloudflare Workers",
-  "license": "AGPL-3.0-or-later",
-	"workspaces": ["workers/producer"],
+	"name": "cache-tag",
+	"description": "Cache Tag Cloudflare Workers",
+	"license": "AGPL-3.0-or-later",
+	"scripts": {
+		"prepare": "husky"
+	},
 	"devDependencies": {
 		"husky": "^9.1.1",
 		"lint-staged": "^15.2.7",
@@ -10,5 +12,5 @@
 	},
 	"lint-staged": {
 		"**/*": "prettier --write --ignore-unknown"
-	},
+	}
 }

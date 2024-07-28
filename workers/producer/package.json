@@ -6,8 +6,7 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --local-upstream davidwbarratt.com --upstream-protocol https --remote",
 		"test": "vitest",
-		"cf-typegen": "wrangler types",
-		"prepare": "husky"
+		"cf-typegen": "wrangler types"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.4.5",
@@ -17,16 +16,10 @@
 		"@types/eslint-config-prettier": "^6.11.3",
 		"eslint": "^8.57.0",
 		"eslint-config-prettier": "^9.1.0",
-		"husky": "^9.1.1",
-		"lint-staged": "^15.2.7",
-		"prettier": "^3.3.3",
 		"typescript": "^5.5.4",
 		"typescript-eslint": "^7.17.0",
 		"vitest": "^1.5.0",
 		"wrangler": "^3.66.0"
-	},
-	"lint-staged": {
-		"**/*": "prettier --write --ignore-unknown"
 	},
 	"dependencies": {
 		"tracking-query-params-registry": "github:mpchadwick/tracking-query-params-registry"
