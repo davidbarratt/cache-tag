@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "Consumer",
+			"path": "workers/consumer",
+		},
+		{
+			"name": "Producer",
+			"path": "workers/producer",
+		},
+	],
+	"settings": {},
+}

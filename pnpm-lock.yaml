@@ -8,7 +8,7 @@ importers:
   .:
     devDependencies:
       husky:
-        specifier: ^9.1.1
+        specifier: ^9.1.3
         version: 9.1.3
       lint-staged:
         specifier: ^15.2.7
@@ -17,20 +17,16 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
-  workers/producer:
-    dependencies:
-      tracking-query-params-registry:
-        specifier: github:mpchadwick/tracking-query-params-registry
-        version: https://codeload.github.com/mpchadwick/tracking-query-params-registry/tar.gz/e02782673a18c47846b6640a38df121443cc985c
+  workers/consumer:
     devDependencies:
       "@cloudflare/vitest-pool-workers":
-        specifier: ^0.4.5
+        specifier: ^0.4.16
         version: 0.4.16(@cloudflare/workers-types@4.20240725.0)(@vitest/runner@1.6.0)(@vitest/snapshot@1.6.0)(vitest@1.6.0(@types/node@20.14.12))
       "@cloudflare/workers-types":
-        specifier: ^4.20240722.0
+        specifier: ^4.20240725.0
         version: 4.20240725.0
       "@eslint/js":
-        specifier: ^9.7.0
+        specifier: ^9.8.0
         version: 9.8.0
       "@types/eslint-config-prettier":
         specifier: ^6.11.3
@@ -51,10 +47,50 @@ importers:
         specifier: ^7.17.0
         version: 7.17.0(eslint@8.57.0)(typescript@5.5.4)
       vitest:
-        specifier: ^1.5.0
+        specifier: ^1.6.0
         version: 1.6.0(@types/node@20.14.12)
       wrangler:
-        specifier: ^3.66.0
+        specifier: ^3.67.1
+        version: 3.67.1(@cloudflare/workers-types@4.20240725.0)
+
+  workers/producer:
+    dependencies:
+      tracking-query-params-registry:
+        specifier: github:mpchadwick/tracking-query-params-registry
+        version: https://codeload.github.com/mpchadwick/tracking-query-params-registry/tar.gz/e02782673a18c47846b6640a38df121443cc985c
+    devDependencies:
+      "@cloudflare/vitest-pool-workers":
+        specifier: ^0.4.16
+        version: 0.4.16(@cloudflare/workers-types@4.20240725.0)(@vitest/runner@1.6.0)(@vitest/snapshot@1.6.0)(vitest@1.6.0(@types/node@20.14.12))
+      "@cloudflare/workers-types":
+        specifier: ^4.20240725.0
+        version: 4.20240725.0
+      "@eslint/js":
+        specifier: ^9.8.0
+        version: 9.8.0
+      "@types/eslint-config-prettier":
+        specifier: ^6.11.3
+        version: 6.11.3
+      "@types/eslint__js":
+        specifier: ^8.42.3
+        version: 8.42.3
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+      typescript-eslint:
+        specifier: ^7.17.0
+        version: 7.17.0(eslint@8.57.0)(typescript@5.5.4)
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@20.14.12)
+      wrangler:
+        specifier: ^3.67.1
         version: 3.67.1(@cloudflare/workers-types@4.20240725.0)
 
 packages:
@@ -1253,10 +1289,10 @@ packages:
         integrity: sha512-fRHTG8g/Gif+kSh50gaGEdToemgfj74aRX3swtiouboip5JDLAyDE9F11nHMIcvOaXeOC6D7SpNhi7uFyB7Uww==,
       }
 
-  debug@4.3.5:
+  debug@4.3.6:
     resolution:
       {
-        integrity: sha512-pt0bNEmneDIvdL1Xsd9oDQ/wrQRkXDT4AUWlNZNPKvW5x/jyO9VFXkJUP07vQ2upmw5PlaITaPKc31jK13V+jg==,
+        integrity: sha512-O/09Bd4Z1fBrU4VzkhFqVgpPzaGbw6Sm9FEkBT1A/YBXQFGuuSxa1dN2nxgxS34JmKXqYx8CZAwEVoJFImUXIg==,
       }
     engines: { node: ">=6.0" }
     peerDependencies:
@@ -1794,10 +1830,10 @@ packages:
     engines: { node: ">=18.12.0" }
     hasBin: true
 
-  listr2@8.2.3:
+  listr2@8.2.4:
     resolution:
       {
-        integrity: sha512-Lllokma2mtoniUOS94CcOErHWAug5iu7HOmDrvWgpw8jyQH2fomgB+7lZS4HWZxytUuQwkGOwe49FvwVaA85Xw==,
+        integrity: sha512-opevsywziHd3zHCVQGAj8zu+Z3yHNkkoYhWIGnq54RrCVwLz0MozotJEDnKsIBLvkfLGN6BLOyAeRrYI0pKA4g==,
       }
     engines: { node: ">=18.0.0" }
 
@@ -2931,7 +2967,7 @@ snapshots:
   "@eslint/eslintrc@2.1.4":
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.5
+      debug: 4.3.6
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.1
@@ -2951,7 +2987,7 @@ snapshots:
   "@humanwhocodes/config-array@0.11.14":
     dependencies:
       "@humanwhocodes/object-schema": 2.0.3
-      debug: 4.3.5
+      debug: 4.3.6
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -3082,7 +3118,7 @@ snapshots:
       "@typescript-eslint/types": 7.17.0
       "@typescript-eslint/typescript-estree": 7.17.0(typescript@5.5.4)
       "@typescript-eslint/visitor-keys": 7.17.0
-      debug: 4.3.5
+      debug: 4.3.6
       eslint: 8.57.0
     optionalDependencies:
       typescript: 5.5.4
@@ -3098,7 +3134,7 @@ snapshots:
     dependencies:
       "@typescript-eslint/typescript-estree": 7.17.0(typescript@5.5.4)
       "@typescript-eslint/utils": 7.17.0(eslint@8.57.0)(typescript@5.5.4)
-      debug: 4.3.5
+      debug: 4.3.6
       eslint: 8.57.0
       ts-api-utils: 1.3.0(typescript@5.5.4)
     optionalDependencies:
@@ -3112,7 +3148,7 @@ snapshots:
     dependencies:
       "@typescript-eslint/types": 7.17.0
       "@typescript-eslint/visitor-keys": 7.17.0
-      debug: 4.3.5
+      debug: 4.3.6
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -3245,7 +3281,7 @@ snapshots:
 
   capnp-ts@0.7.0:
     dependencies:
-      debug: 4.3.5
+      debug: 4.3.6
       tslib: 2.6.3
     transitivePeerDependencies:
       - supports-color
@@ -3322,7 +3358,7 @@ snapshots:
 
   date-fns@3.6.0: {}
 
-  debug@4.3.5:
+  debug@4.3.6:
     dependencies:
       ms: 2.1.2
 
@@ -3427,7 +3463,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      debug: 4.3.5
+      debug: 4.3.6
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -3669,10 +3705,10 @@ snapshots:
     dependencies:
       chalk: 5.3.0
       commander: 12.1.0
-      debug: 4.3.5
+      debug: 4.3.6
       execa: 8.0.1
       lilconfig: 3.1.2
-      listr2: 8.2.3
+      listr2: 8.2.4
       micromatch: 4.0.7
       pidtree: 0.6.0
       string-argv: 0.3.2
@@ -3680,7 +3716,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  listr2@8.2.3:
+  listr2@8.2.4:
     dependencies:
       cli-truncate: 4.0.0
       colorette: 2.0.20
@@ -4087,7 +4123,7 @@ snapshots:
   vite-node@1.6.0(@types/node@20.14.12):
     dependencies:
       cac: 6.7.14
-      debug: 4.3.5
+      debug: 4.3.6
       pathe: 1.1.2
       picocolors: 1.0.1
       vite: 5.3.5(@types/node@20.14.12)
@@ -4119,7 +4155,7 @@ snapshots:
       "@vitest/utils": 1.6.0
       acorn-walk: 8.3.3
       chai: 4.5.0
-      debug: 4.3.5
+      debug: 4.3.6
       execa: 8.0.1
       local-pkg: 0.5.0
       magic-string: 0.30.10
