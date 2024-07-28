@@ -1,18 +1,5 @@
 import rawParams from "tracking-query-params-registry/_data/params.csv";
 
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.toml`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
-
 const params = new Set<string>(
 	rawParams.split("\n").map((line) => {
 		const end = line.indexOf(",");
@@ -26,6 +13,9 @@ interface Capture {
 }
 
 export default {
+	/**
+	 * @todo We need to accept the `/.cloudflare/purge` route and handle that.
+	 */
 	async fetch(request, env) {
 		// Remove any tracking params to increase the cache hit rate.
 		const url = new URL(request.url);
@@ -63,9 +53,6 @@ export default {
 
 		await env.CACHE_CAPTURE.send(capture, { contentType: "json" });
 
-		/**
-		 * @todo Now that we have pushed to a queue, we should consume the values and save to D1.
-		 */
 		return response;
 	},
 } satisfies ExportedHandler<Env>;

@@ -103,5 +103,5 @@
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */
 	},
 	"exclude": ["test"],
-	"include": ["worker-configuration.d.ts", "*.mjs", "*.mts", "src/**/*.ts"]
+	"include": ["worker-configuration.d.ts", "*.mjs", "src/**/*.ts"]
 }
