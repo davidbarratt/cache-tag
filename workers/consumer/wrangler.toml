@@ -40,10 +40,10 @@ routes = [
 
 # Bind a D1 database. D1 is Cloudflare’s native serverless SQL database.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
-# [[d1_databases]]
-# binding = "MY_DB"
-# database_name = "my-database"
-# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "cache-tag"
+database_id = "49a13934-d832-4521-bcdf-7127b8f8f16b"
 
 # Bind a dispatch namespace. Use Workers for Platforms to deploy serverless functions programmatically on behalf of your customers.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#dispatch-namespace-bindings-workers-for-platforms
@@ -92,6 +92,7 @@ routes = [
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
 [[queues.consumers]]
 queue = "cache-capture"
+max_batch_size = 1
 
 # Bind an R2 Bucket. Use R2 to store arbitrarily large blobs of data, such as files.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#r2-buckets

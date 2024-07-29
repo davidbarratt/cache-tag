@@ -1,90 +1,26 @@
-import { SELF, env, fetchMock } from "cloudflare:test";
-import { beforeAll, afterEach, it, expect, vi } from "vitest";
+import { randomBytes } from "node:crypto";
+import { SELF } from "cloudflare:test";
+import { it, expect, vi } from "vitest";
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.
 // const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
 
-beforeAll(() => {
-	fetchMock.activate();
-});
-afterEach(() => {
-	fetchMock.assertNoPendingInterceptors();
-});
+interface CacheCapture {
+	url: string;
+	tags: string[];
+}
 
-it("adds cache tags to the capture queue", async () => {
-	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
-
-	fetchMock
-		.get("https://example.com")
-		.intercept({ path: "/" })
-		.reply(200, "", {
-			headers: {
-				"CF-Cache-Status": "MISS",
-				"X-Cache-Tag": "test",
-			},
-		});
-
-	await SELF.fetch("https://example.com");
-
-	expect(sendSpy).toBeCalledWith(
+it("adds cache tags to database", async () => {
+	const messages: ServiceBindingQueueMessage<CacheCapture>[] = [
 		{
-			url: "", // I hate that this is empty, but I don't see a good way to mock it.
-			tags: ["test"],
+			id: randomBytes(16).toString("hex"),
+			timestamp: new Date(1000),
+			attempts: 1,
+			body: { url: "https://example.com", tags: ["example"] },
 		},
-		{ contentType: "json" },
-	);
-});
+	];
 
-it("passes when CF-Cache-Status is something other than MISS", async () => {
-	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
-
-	fetchMock
-		.get("https://example.com")
-		.intercept({ path: "/" })
-		.reply(200, "", {
-			headers: {
-				"CF-Cache-Status": "DYNAMIC",
-				"X-Cache-Tag": "test",
-			},
-		});
-
-	await SELF.fetch("https://example.com");
-
-	expect(sendSpy).not.toBeCalled();
-});
-
-it("passes when X-Cache-Tag is not set", async () => {
-	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
-
-	fetchMock
-		.get("https://example.com")
-		.intercept({ path: "/" })
-		.reply(200, "", {
-			headers: {
-				"CF-Cache-Status": "DYNAMIC",
-			},
-		});
-
-	await SELF.fetch("https://example.com");
-
-	expect(sendSpy).not.toBeCalled();
-});
-
-it("passes when X-Cache-Tag is empty", async () => {
-	const sendSpy = vi.spyOn(env.CACHE_CAPTURE, "send").mockResolvedValue();
-
-	fetchMock
-		.get("https://example.com")
-		.intercept({ path: "/" })
-		.reply(200, "", {
-			headers: {
-				"CF-Cache-Status": "DYNAMIC",
-				"X-Cache-Tag": "",
-			},
-		});
-
-	await SELF.fetch("https://example.com");
-
-	expect(sendSpy).not.toBeCalled();
+	const result = await SELF.queue("cache-capture", messages);
+	expect(result.outcome).toBe("ok");
 });
