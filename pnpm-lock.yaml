@@ -18,6 +18,10 @@ importers:
         version: 3.3.3
 
   workers/consumer:
+    dependencies:
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
     devDependencies:
       "@cloudflare/vitest-pool-workers":
         specifier: ^0.4.16
