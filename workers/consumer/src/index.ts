@@ -4,6 +4,7 @@ const CaptureSchema = z.object({
 	url: z.string().url(),
 	tags: z.array(z.string()),
 });
+
 async function createHash(message: string) {
 	const digest = await crypto.subtle.digest(
 		"SHA-1",
@@ -15,6 +16,11 @@ async function createHash(message: string) {
 		.replace(/=+$/, "");
 }
 
+/**
+ * @todo Now that we have the values and the schema, the next step is to follow
+ * {@link https://github.com/cloudflare/workers-sdk/tree/main/fixtures/vitest-pool-workers-examples/d1 the example}
+ * and write a test that test that this actually works.
+ */
 async function cacheCapture(batch: MessageBatch, env: Env) {
 	for (const msg of batch.messages) {
 		const { url, tags } = CaptureSchema.parse(msg.body);
@@ -25,9 +31,6 @@ async function cacheCapture(batch: MessageBatch, env: Env) {
 }
 
 export default {
-	/**
-	 * @todo Now that we have pushed to a queue, we should consume the values and save to D1.
-	 */
 	async queue(batch, env) {
 		switch (batch.queue) {
 			case "cache-capture":
