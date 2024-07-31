@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { SELF } from "cloudflare:test";
+import { env, SELF } from "cloudflare:test";
 import { it, expect, vi } from "vitest";
 
 // For now, you'll need to do something like this to get a correctly-typed
@@ -21,6 +21,13 @@ it("adds cache tags to database", async () => {
 		},
 	];
 
-	const result = await SELF.queue("cache-capture", messages);
-	expect(result.outcome).toBe("ok");
+	const { outcome } = await SELF.queue("cache-capture", messages);
+	expect(outcome).toBe("ok");
+
+	const { results: tags } = await env.DB.prepare(
+		"SELECT * FROM tag JOIN url ON tag.url = url.id WHERE url.url = ?",
+	)
+		.bind("https://example.com")
+		.run();
+	expect(tags[0].tag).toBe("example");
 });

@@ -22,11 +22,24 @@ async function createHash(message: string) {
  * and write a test that test that this actually works.
  */
 async function cacheCapture(batch: MessageBatch, env: Env) {
+	const dalete = env.DB.prepare("DELETE FROM tag WHERE url = ?");
+	const insertUrl = env.DB.prepare(
+		"INSERT OR IGNORE INTO url(id, url) VALUES(?, ?)",
+	);
+	const insertTag = env.DB.prepare("INSERT INTO tag(url, tag) VALUES (?, ?)");
 	for (const msg of batch.messages) {
 		const { url, tags } = CaptureSchema.parse(msg.body);
-		console.log("HASH", await createHash(url));
-		console.log("URL", url);
-		console.log("TAGS", tags);
+		const hash = await createHash(url);
+
+		const stmts: D1PreparedStatement[] = [];
+
+		stmts.push(dalete.bind(hash));
+		stmts.push(insertUrl.bind(hash, url));
+		for (const tag of tags) {
+			stmts.push(insertTag.bind(hash, tag));
+		}
+
+		await env.DB.batch(stmts);
 	}
 }
 
