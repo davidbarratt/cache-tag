@@ -25,7 +25,7 @@ it("adds cache tags to database", async () => {
 	expect(outcome).toBe("ok");
 
 	const { results: tags } = await env.DB.prepare(
-		"SELECT * FROM tag JOIN url ON tag.url = url.id WHERE url.url = ?",
+		"SELECT tag FROM tag JOIN url ON tag.url = url.id WHERE url.url = ?",
 	)
 		.bind("https://example.com")
 		.run();
