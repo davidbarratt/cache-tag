@@ -5,6 +5,9 @@ const CaptureSchema = z.object({
 	tags: z.array(z.string()),
 });
 
+/**
+ * Creates a base64url encoded hash from any string.
+ */
 async function createHash(message: string) {
 	const digest = await crypto.subtle.digest(
 		"SHA-1",
@@ -17,9 +20,8 @@ async function createHash(message: string) {
 }
 
 /**
- * @todo Now that we have the values and the schema, the next step is to follow
- * {@link https://github.com/cloudflare/workers-sdk/tree/main/fixtures/vitest-pool-workers-examples/d1 the example}
- * and write a test that test that this actually works.
+ * @todo We shouldk probably implement some sort of incremental back off maybe?
+ * @todo We should start working on the PURGE
  */
 async function cacheCapture(batch: MessageBatch, env: Env) {
 	const dalete = env.DB.prepare("DELETE FROM tag WHERE url = ?");
@@ -27,6 +29,7 @@ async function cacheCapture(batch: MessageBatch, env: Env) {
 		"INSERT OR IGNORE INTO url(id, url) VALUES(?, ?)",
 	);
 	const insertTag = env.DB.prepare("INSERT INTO tag(url, tag) VALUES (?, ?)");
+
 	for (const msg of batch.messages) {
 		const { url, tags } = CaptureSchema.parse(msg.body);
 		const hash = await createHash(url);

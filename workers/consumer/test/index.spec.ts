@@ -24,6 +24,7 @@ it("adds cache tags to database", async () => {
 	const { outcome } = await SELF.queue("cache-capture", messages);
 	expect(outcome).toBe("ok");
 
+	// This query doesn't using an index.
 	const { results: tags } = await env.DB.prepare(
 		"SELECT tag FROM tag JOIN url ON tag.url = url.id WHERE url.url = ?",
 	)
