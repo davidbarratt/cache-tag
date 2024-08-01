@@ -1,12 +1,12 @@
 {
 	"folders": [
 		{
-			"name": "Consumer",
-			"path": "workers/consumer",
+			"name": "Handler",
+			"path": "workers/handler",
 		},
 		{
-			"name": "Producer",
-			"path": "workers/producer",
+			"name": "Watcher",
+			"path": "workers/watcher",
 		},
 	],
 	"settings": {},

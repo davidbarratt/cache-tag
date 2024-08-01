@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "cache-tag"
+name = "cache-tag-watcher"
 main = "src/index.ts"
 compatibility_date = "2024-07-18"
 workers_dev = false
@@ -90,6 +90,10 @@ rules = [
 [[queues.producers]]
 binding = "CACHE_CAPTURE"
 queue = "cache-capture"
+
+[[queues.producers]]
+binding = "CACHE_PURGE"
+queue = "cache-purge"
 
 # Bind a Queue consumer. Queue Consumers can retrieve tasks scheduled by Producers to act on them.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
