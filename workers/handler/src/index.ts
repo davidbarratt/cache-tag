@@ -19,16 +19,12 @@ async function createHash(message: string) {
 		.replace(/=+$/, "");
 }
 
-/**
- * @todo We shouldk probably implement some sort of incremental back off maybe?
- * @todo We should start working on the PURGE
- */
 async function cacheCapture(batch: MessageBatch, env: Env) {
 	const dalete = env.DB.prepare("DELETE FROM tag WHERE url = ?");
 	const insertUrl = env.DB.prepare(
-		"INSERT OR IGNORE INTO url(id, url) VALUES(?, ?)",
+		"INSERT OR IGNORE INTO url(id, value) VALUES(?, ?)",
 	);
-	const insertTag = env.DB.prepare("INSERT INTO tag(url, tag) VALUES (?, ?)");
+	const insertTag = env.DB.prepare("INSERT INTO tag(url, value) VALUES (?, ?)");
 
 	for (const msg of batch.messages) {
 		const { url, tags } = CaptureSchema.parse(msg.body);
@@ -46,6 +42,10 @@ async function cacheCapture(batch: MessageBatch, env: Env) {
 	}
 }
 
+/**
+ * @todo We shouldk probably implement some sort of incremental back off maybe?
+ * @todo Consume the `cache-tag-purge` and re-queue a `cache-tag-url`
+ */
 export default {
 	async queue(batch, env) {
 		switch (batch.queue) {

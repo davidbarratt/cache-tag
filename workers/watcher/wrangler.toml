@@ -92,8 +92,8 @@ binding = "CACHE_CAPTURE"
 queue = "cache-capture"
 
 [[queues.producers]]
-binding = "CACHE_PURGE"
-queue = "cache-purge"
+binding = "CACHE_PURGE_TAG"
+queue = "cache-purge-tag"
 
 # Bind a Queue consumer. Queue Consumers can retrieve tasks scheduled by Producers to act on them.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues

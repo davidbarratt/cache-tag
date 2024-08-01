@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { env, SELF } from "cloudflare:test";
-import { it, expect, vi } from "vitest";
+import { it, expect } from "vitest";
 
 // For now, you'll need to do something like this to get a correctly-typed
 // `Request` to pass to `worker.fetch()`.
@@ -24,9 +24,8 @@ it("adds cache tags to database", async () => {
 	const { outcome } = await SELF.queue("cache-capture", messages);
 	expect(outcome).toBe("ok");
 
-	// This query doesn't using an index.
 	const { results: tags } = await env.DB.prepare(
-		"SELECT tag FROM tag JOIN url ON tag.url = url.id WHERE url.url = ?",
+		"SELECT tag.value AS tag FROM tag JOIN url ON tag.url = url.id WHERE url.value = ?",
 	)
 		.bind("https://example.com")
 		.run();
