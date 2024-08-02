@@ -1,3 +1,4 @@
+import Cloudflare from "cloudflare";
 import rawParams from "tracking-query-params-registry/_data/params.csv";
 import { z } from "zod";
 
@@ -53,18 +54,13 @@ async function handlePurgeRequest(request: Request, env: Env) {
 		);
 	}
 
-	const response = await fetch(
-		"https://api.cloudflare.com/client/v4/user/tokens/verify",
-		{
-			headers: {
-				Authoriztion: `Bearer ${env.API_TOKEN}`,
-			},
-		},
-	);
+	const client = new Cloudflare({
+		apiToken: env.API_TOKEN,
+	});
 
-	const { result } = Verify.parse(await response.json());
+	const { status } = await client.user.tokens.verify();
 
-	if (result.status !== "active") {
+	if (status !== "active") {
 		return Response.json(
 			{
 				error: "Authentication token is not active.",

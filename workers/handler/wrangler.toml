@@ -81,15 +81,23 @@ database_id = "49a13934-d832-4521-bcdf-7127b8f8f16b"
 
 # Bind a Queue producer. Use this binding to schedule an arbitrary task that may be processed later by a Queue consumer.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
-# [[queues.producers]]
-# binding = "CACHE_CAPTURE"
-# queue = "cache-capture"
+[[queues.producers]]
+binding = "CACHE_PURGE_URL"
+queue = "cache-purge-url"
 
 # Bind a Queue consumer. Queue Consumers can retrieve tasks scheduled by Producers to act on them.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
 [[queues.consumers]]
 queue = "cache-capture"
 max_batch_size = 1
+
+[[queues.consumers]]
+queue = "cache-purge-tag"
+max_batch_size = 100
+
+[[queues.consumers]]
+queue = "cache-purge-url"
+max_batch_size = 30
 
 # Bind an R2 Bucket. Use R2 to store arbitrarily large blobs of data, such as files.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#r2-buckets

@@ -1,3 +1,4 @@
+import Cloudflare from "cloudflare";
 import { z } from "zod";
 
 const CaptureSchema = z.object({
@@ -42,6 +43,66 @@ async function cacheCapture(batch: MessageBatch, env: Env) {
 	}
 }
 
+async function cachePurgeTag(batch: MessageBatch, env: Env) {
+	const tags = batch.messages.map((msg) => z.string().parse(msg.body));
+	const results = await env.DB.prepare(
+		`SELECT DISTINCT id, value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
+	)
+		.bind(tags)
+		.raw<[string, string]>();
+
+	const data = new Map<string, string>(results);
+
+	const urls = Array.from(data.values());
+
+	// Re-queue all of the tags as URLs.
+	await env.CACHE_PURGE_URL.sendBatch(
+		urls.map((url) => ({
+			body: url,
+			contentType: "text",
+		})),
+	);
+
+	const ids = Array.from(data.keys());
+
+	await env.DB.prepare(
+		`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
+	)
+		.bind(ids)
+		.run();
+}
+
+async function cachePurgeUrl(batch: MessageBatch, env: Env) {
+	const client = new Cloudflare({
+		apiToken: env.API_TOKEN,
+	});
+
+	// Group by hostname.
+	const grouped = batch.messages.reduce((acc, { body }) => {
+		if (typeof body !== "string") {
+			return acc;
+		}
+
+		const url = new URL(body);
+
+		const sub = acc.get(url.hostname);
+		if (sub) {
+			sub.add(body);
+		} else {
+			acc.set(url.hostname, new Set([body]));
+		}
+
+		return acc;
+	}, new Map<string, Set<string>>());
+
+	/**
+	 * @todo loop through the domains and find the nearest zone id.
+	 */
+	client.zones.list({
+		name: "",
+	});
+}
+
 /**
  * @todo We shouldk probably implement some sort of incremental back off maybe?
  * @todo Consume the `cache-tag-purge` and re-queue a `cache-tag-url`
@@ -51,6 +112,10 @@ export default {
 		switch (batch.queue) {
 			case "cache-capture":
 				return cacheCapture(batch, env);
+			case "cache-purge-tag":
+				return cachePurgeTag(batch, env);
+			case "cache-purge-url":
+				return cachePurgeUrl(batch, env);
 		}
 	},
 } satisfies ExportedHandler<Env>;
