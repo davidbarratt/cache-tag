@@ -89,7 +89,6 @@ queue = "cache-purge-url"
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#queues
 [[queues.consumers]]
 queue = "cache-capture"
-max_batch_size = 1
 
 [[queues.consumers]]
 queue = "cache-purge-tag"

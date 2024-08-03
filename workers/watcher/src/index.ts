@@ -14,15 +14,15 @@ interface Capture {
 	tags: string[];
 }
 
-const Verify = z.object({
-	result: z.object({
-		status: z.enum(["active", "disabled", "expired"]),
-	}),
-});
-
 const Purge = z.object({
 	tags: z.array(z.string()),
 });
+
+function* chunks<T>(arr: T[], n: number) {
+	for (let i = 0; i < arr.length; i += n) {
+		yield arr.slice(i, i + n);
+	}
+}
 
 async function handlePurgeRequest(request: Request, env: Env) {
 	const auth = request.headers.get("Authorization");
@@ -76,7 +76,13 @@ async function handlePurgeRequest(request: Request, env: Env) {
 		contentType: "text",
 	}));
 
-	await env.CACHE_PURGE_TAG.sendBatch(messages);
+	// sendBatch only allows for a maximum of 100 messages.
+	const promises: ReturnType<typeof env.CACHE_PURGE_TAG.sendBatch>[] = [];
+	for (const messageChunks of chunks(messages, 100)) {
+		promises.push(env.CACHE_PURGE_TAG.sendBatch(messageChunks));
+	}
+
+	await Promise.all(promises);
 
 	return new Response("", { status: 202 });
 }
