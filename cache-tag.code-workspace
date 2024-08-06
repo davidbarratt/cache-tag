@@ -1,6 +1,10 @@
 {
 	"folders": [
 		{
+			"name": "Controller",
+			"path": "workers/controller",
+		},
+		{
 			"name": "Handler",
 			"path": "workers/handler",
 		},

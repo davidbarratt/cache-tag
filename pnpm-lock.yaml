@@ -18,6 +18,58 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
 
+  workers/controller:
+    dependencies:
+      cloudflare:
+        specifier: ^3.5.0
+        version: 3.5.0
+      tracking-query-params-registry:
+        specifier: github:mpchadwick/tracking-query-params-registry
+        version: https://codeload.github.com/mpchadwick/tracking-query-params-registry/tar.gz/e02782673a18c47846b6640a38df121443cc985c
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@cloudflare/vitest-pool-workers':
+        specifier: ^0.4.16
+        version: 0.4.16(@cloudflare/workers-types@4.20240725.0)(@vitest/runner@1.5.3)(@vitest/snapshot@1.5.3)(vitest@1.5.3(@types/node@22.0.2))
+      '@cloudflare/workers-types':
+        specifier: ^4.20240725.0
+        version: 4.20240725.0
+      '@eslint/js':
+        specifier: ^9.8.0
+        version: 9.8.0
+      '@types/eslint-config-prettier':
+        specifier: ^6.11.3
+        version: 6.11.3
+      '@types/eslint__js':
+        specifier: ^8.42.3
+        version: 8.42.3
+      '@vitest/runner':
+        specifier: ~1.5.3
+        version: 1.5.3
+      '@vitest/snapshot':
+        specifier: ~1.5.3
+        version: 1.5.3
+      eslint:
+        specifier: ^8.57.0
+        version: 8.57.0
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.57.0)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+      typescript-eslint:
+        specifier: ^7.18.0
+        version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
+      vitest:
+        specifier: ~1.5.3
+        version: 1.5.3(@types/node@22.0.2)
+      wrangler:
+        specifier: ^3.67.1
+        version: 3.67.1(@cloudflare/workers-types@4.20240725.0)
+
   workers/handler:
     dependencies:
       cloudflare:
@@ -69,15 +121,9 @@ importers:
 
   workers/watcher:
     dependencies:
-      cloudflare:
-        specifier: ^3.5.0
-        version: 3.5.0
       tracking-query-params-registry:
         specifier: github:mpchadwick/tracking-query-params-registry
         version: https://codeload.github.com/mpchadwick/tracking-query-params-registry/tar.gz/e02782673a18c47846b6640a38df121443cc985c
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
     devDependencies:
       '@cloudflare/vitest-pool-workers':
         specifier: ^0.4.16

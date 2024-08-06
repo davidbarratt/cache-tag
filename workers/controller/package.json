@@ -24,6 +24,8 @@
 		"wrangler": "^3.67.1"
 	},
 	"dependencies": {
-		"tracking-query-params-registry": "github:mpchadwick/tracking-query-params-registry"
+		"cloudflare": "^3.5.0",
+		"tracking-query-params-registry": "github:mpchadwick/tracking-query-params-registry",
+		"zod": "^3.23.8"
 	}
 }

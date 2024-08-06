@@ -4,6 +4,17 @@ import { z } from "zod";
 const CaptureSchema = z.object({
 	url: z.string().url(),
 	tags: z.array(z.string()),
+	zone: z.string(),
+});
+
+const PurgeUrlSchema = z.object({
+	url: z.string().url(),
+	zone: z.string(),
+});
+
+const PurgeTagSchema = z.object({
+	tag: z.string(),
+	zone: z.optional(z.string()),
 });
 
 function* chunks<T>(arr: T[], n: number) {
@@ -33,38 +44,18 @@ async function createHash(message: string) {
 async function cacheCapture(batch: MessageBatch, env: Env) {
 	const deleteTags = env.DB.prepare("DELETE FROM tag WHERE url = ?");
 	const insertUrl = env.DB.prepare(
-		"INSERT OR IGNORE INTO url(id, value) VALUES(?, ?)",
+		"INSERT OR REAPLACE INTO url(id, zone, value) VALUES(?, ?, ?)",
 	);
 	const insertTag = env.DB.prepare("INSERT INTO tag(url, value) VALUES (?, ?)");
 
-	// Within the batch window, we may have recieved multiple URLs (from different locals) with different tags
-	// Here we will attempt to merge the tags based on URL.
-	const deduped = batch.messages.reduce<Map<string, Message[]>>((acc, msg) => {
-		const { url } = CaptureSchema.parse(msg.body);
-		const existing = acc.get(url);
-		if (!existing) {
-			return acc.set(url, [msg]);
-		}
-
-		existing.push(msg);
-
-		return acc;
-	}, new Map<string, Message[]>());
-
-	for (const [url, msgs] of deduped) {
+	for (const msg of batch.messages) {
+		const { url, zone, tags } = CaptureSchema.parse(msg.body);
 		const hash = await createHash(url);
 
 		const stmts: D1PreparedStatement[] = [];
 
 		stmts.push(deleteTags.bind(hash));
-		stmts.push(insertUrl.bind(hash, url));
-
-		const tags = msgs.reduce<Set<string>>((acc, msg) => {
-			return CaptureSchema.parse(msg.body).tags.reduce<Set<string>>(
-				(a, t) => a.add(t),
-				acc,
-			);
-		}, new Set());
+		stmts.push(insertUrl.bind(hash, zone, url));
 
 		for (const tag of tags) {
 			stmts.push(insertTag.bind(hash, tag));
@@ -72,41 +63,44 @@ async function cacheCapture(batch: MessageBatch, env: Env) {
 
 		await env.DB.batch(stmts);
 
-		for (const msg of msgs) {
-			msg.ack();
-		}
+		msg.ack();
 	}
 }
 
 async function cachePurgeTag(batch: MessageBatch, env: Env) {
-	const tags = batch.messages.map((msg) => z.string().parse(msg.body));
-	const results = await env.DB.prepare(
-		`SELECT DISTINCT id, value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
+	/**
+	 * @todo We need to execute this on a per-zone level if there is a zone, if there is no zone then the query should
+	 *       get all the URLs across zones.
+	 */
+	const tags = batch.messages.map((msg) => PurgeTagSchema.parse(msg.body).tag);
+	const { results } = await env.DB.prepare(
+		`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
 	)
 		.bind(tags)
-		.raw<[string, string]>();
-
-	const data = new Map<string, string>(results);
-
-	const urls = Array.from(data.values());
+		.run<{ id: string; zone: string; value: string }>();
 
 	// Re-queue all of the tags as URLs.
 	// sendBatch only allows for a maximum of 100 messages.
 	const promises: ReturnType<typeof env.CACHE_PURGE_URL.sendBatch>[] = [];
-	for (const urlChunk of chunks(urls, 100)) {
+	for (const urlChunk of chunks(results, 100)) {
 		promises.push(
 			env.CACHE_PURGE_URL.sendBatch(
-				urlChunk.map((url) => ({
-					body: url,
-					contentType: "text",
-				})),
+				urlChunk.map<MessageSendRequest<z.infer<typeof PurgeUrlSchema>>>(
+					({ value: url, zone }) => ({
+						body: {
+							url,
+							zone,
+						},
+						contentType: "json",
+					}),
+				),
 			),
 		);
 	}
 
 	await Promise.all(promises);
 
-	const ids = Array.from(data.keys());
+	const ids = results.map<string>(({ id }) => id);
 
 	await env.DB.prepare(
 		`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
@@ -115,90 +109,55 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 		.run();
 }
 
-async function findZoneId(
-	client: InstanceType<typeof Cloudflare>,
-	hostname: string,
-): Promise<string> {
-	let zone_id: string | undefined;
-	let name = hostname;
-	while (!zone_id) {
-		const { result } = await client.zones.list({
-			name,
-		});
-
-		if (result.length < 1) {
-			const parts = name.split(".").slice(1);
-			if (parts.length < 2) {
-				break;
-			} else {
-				name = parts.join(".");
-				continue;
-			}
-		}
-
-		zone_id = result[0].id;
-	}
-
-	if (!zone_id) {
-		throw new Error(`Zone could not be found for ${hostname}`);
-	}
-
-	return zone_id;
-}
-
 async function cachePurgeUrl(batch: MessageBatch, env: Env) {
 	const client = new Cloudflare({
 		apiToken: env.API_TOKEN,
 	});
 
-	// Group by hostname which gets mapped to a zone.
-	const hostnames = batch.messages.reduce<Set<string>>((acc, msg) => {
-		if (typeof msg.body !== "string") {
+	// Group by Zone.
+	const groupedZoneName = batch.messages.reduce<Map<string, Message[]>>(
+		(acc, msg) => {
+			const { zone } = PurgeUrlSchema.parse(msg.body);
+
+			const existing = acc.get(zone);
+			if (!existing) {
+				return acc.set(zone, [msg]);
+			}
+
+			existing.push(msg);
+
 			return acc;
+		},
+		new Map(),
+	);
+
+	const zone_names = Array.from(groupedZoneName.keys());
+
+	const zone_ids = await Promise.all(
+		zone_names.map<Promise<string>>(async (name) => {
+			const { result } = await client.zones.list({ name });
+			const zone = result[0];
+			if (typeof zone === "undefined") {
+				throw new Error(`Zone ID for ${name} was not found`);
+			}
+
+			return zone.id;
+		}),
+	);
+
+	// Re-index the messages by zone_id
+	const grouped = zone_names.reduce<Map<string, Message[]>>((acc, name, i) => {
+		const msgs = groupedZoneName.get(name);
+		if (!msgs) {
+			throw new Error("Messages no longer exist");
+		}
+		const zone_id = zone_ids[i];
+		if (zone_id) {
+			throw new Error("Zone ID no longer exists");
 		}
 
-		const url = new URL(msg.body);
-
-		return acc.add(url.hostname);
-	}, new Set());
-
-	const names = Array.from(hostnames);
-
-	let promises: ReturnType<typeof findZoneId>[] = [];
-	for (const name of names) {
-		promises.push(findZoneId(client, name));
-	}
-
-	const zone_ids = await Promise.all(promises);
-
-	const hostnameZone = new Map<string, string>();
-	for (let i = 0; i < names.length; i++) {
-		hostnameZone.set(names[i], zone_ids[i]);
-	}
-
-	const grouped = batch.messages.reduce<Map<string, Message[]>>((acc, msg) => {
-		if (typeof msg.body !== "string") {
-			return acc;
-		}
-
-		const url = new URL(msg.body);
-
-		const zone_id = hostnameZone.get(url.hostname);
-
-		if (!zone_id) {
-			throw new Error(`Zone id for ${url.hostname} does not exist`);
-		}
-
-		const existing = acc.get(zone_id);
-		if (!existing) {
-			return acc.set(zone_id, [msg]);
-		}
-
-		existing.push(msg);
-
-		return acc;
+		return acc.set(zone_id, msgs);
 	}, new Map());
-
 	/**
 	 * @todo Now that we have them grouped by Zone ID, we can purge!
 	 */
