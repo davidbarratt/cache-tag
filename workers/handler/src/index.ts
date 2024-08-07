@@ -68,57 +68,9 @@ async function cacheCapture(batch: MessageBatch, env: Env) {
 }
 
 async function cachePurgeTag(batch: MessageBatch, env: Env) {
-	/**
-	 * @todo We need to execute this on a per-zone level if there is a zone, if there is no zone then the query should
-	 *       get all the URLs across zones.
-	 */
-	const tags = batch.messages.map((msg) => PurgeTagSchema.parse(msg.body).tag);
-	const { results } = await env.DB.prepare(
-		`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
-	)
-		.bind(tags)
-		.run<{ id: string; zone: string; value: string }>();
-
-	// Re-queue all of the tags as URLs.
-	// sendBatch only allows for a maximum of 100 messages.
-	const promises: ReturnType<typeof env.CACHE_PURGE_URL.sendBatch>[] = [];
-	for (const urlChunk of chunks(results, 100)) {
-		promises.push(
-			env.CACHE_PURGE_URL.sendBatch(
-				urlChunk.map<MessageSendRequest<z.infer<typeof PurgeUrlSchema>>>(
-					({ value: url, zone }) => ({
-						body: {
-							url,
-							zone,
-						},
-						contentType: "json",
-					}),
-				),
-			),
-		);
-	}
-
-	await Promise.all(promises);
-
-	const ids = results.map<string>(({ id }) => id);
-
-	await env.DB.prepare(
-		`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
-	)
-		.bind(ids)
-		.run();
-}
-
-async function cachePurgeUrl(batch: MessageBatch, env: Env) {
-	const client = new Cloudflare({
-		apiToken: env.API_TOKEN,
-	});
-
-	// Group by Zone.
-	const groupedZoneName = batch.messages.reduce<Map<string, Message[]>>(
+	const zoneMsgs = batch.messages.reduce<Map<string | undefined, Message[]>>(
 		(acc, msg) => {
-			const { zone } = PurgeUrlSchema.parse(msg.body);
-
+			const { zone } = PurgeTagSchema.parse(msg.body);
 			const existing = acc.get(zone);
 			if (!existing) {
 				return acc.set(zone, [msg]);
@@ -131,36 +83,123 @@ async function cachePurgeUrl(batch: MessageBatch, env: Env) {
 		new Map(),
 	);
 
-	const zone_names = Array.from(groupedZoneName.keys());
+	for (const [zone, msgs] of zoneMsgs) {
+		const tags = msgs.map<string>((msg) => PurgeTagSchema.parse(msg.body).tag);
 
-	const zone_ids = await Promise.all(
-		zone_names.map<Promise<string>>(async (name) => {
-			const { result } = await client.zones.list({ name });
-			const zone = result[0];
-			if (typeof zone === "undefined") {
-				throw new Error(`Zone ID for ${name} was not found`);
-			}
-
-			return zone.id;
-		}),
-	);
-
-	// Re-index the messages by zone_id
-	const grouped = zone_names.reduce<Map<string, Message[]>>((acc, name, i) => {
-		const msgs = groupedZoneName.get(name);
-		if (!msgs) {
-			throw new Error("Messages no longer exist");
-		}
-		const zone_id = zone_ids[i];
-		if (zone_id) {
-			throw new Error("Zone ID no longer exists");
+		let query: D1PreparedStatement;
+		if (zone) {
+			query = env.DB.prepare(
+				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
+			).bind(...tags);
+		} else {
+			query = env.DB.prepare(
+				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE url.zone = ? tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
+			).bind(zone, ...tags);
 		}
 
-		return acc.set(zone_id, msgs);
+		const { results } = await query.run<{
+			id: string;
+			zone: string;
+			value: string;
+		}>();
+
+		// Re-queue all of the tags as URLs.
+		// sendBatch only allows for a maximum of 100 messages.
+		const promises: ReturnType<typeof env.CACHE_PURGE_URL.sendBatch>[] = [];
+		for (const urlChunk of chunks(results, 100)) {
+			promises.push(
+				env.CACHE_PURGE_URL.sendBatch(
+					urlChunk.map<MessageSendRequest<z.infer<typeof PurgeUrlSchema>>>(
+						(data) => ({
+							body: {
+								url: data.value,
+								zone: data.zone,
+							},
+							contentType: "json",
+						}),
+					),
+				),
+			);
+		}
+
+		await Promise.all(promises);
+
+		const ids = results.map<string>(({ id }) => id);
+
+		await env.DB.prepare(
+			`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
+		)
+			.bind(...ids)
+			.run();
+
+		for (const msg of msgs) {
+			msg.ack();
+		}
+	}
+}
+
+async function cachePurgeUrl(batch: MessageBatch, env: Env) {
+	const client = new Cloudflare({
+		apiToken: env.API_TOKEN,
+	});
+
+	// Group by Zone.
+	const zoneMsgs = batch.messages.reduce<Map<string, Message[]>>((acc, msg) => {
+		const { zone } = PurgeUrlSchema.parse(msg.body);
+
+		const existing = acc.get(zone);
+		if (!existing) {
+			return acc.set(zone, [msg]);
+		}
+
+		existing.push(msg);
+
+		return acc;
 	}, new Map());
-	/**
-	 * @todo Now that we have them grouped by Zone ID, we can purge!
-	 */
+
+	for (const [name, msgs] of zoneMsgs) {
+		let result: Awaited<ReturnType<typeof client.zones.list>>["result"];
+		try {
+			({ result } = await client.zones.list({ name }));
+		} catch (cause) {
+			console.error("[Cache Purge URL] Zone ID could not be retrieved", cause);
+			for (const msg of msgs) {
+				msg.retry({ delaySeconds: calculateExponentialBackoff(msg.attempts) });
+			}
+			continue;
+		}
+
+		const zone = result[0];
+		if (typeof zone === "undefined") {
+			const error = new Error(
+				`[Cache Purge URL] Zone ID for ${name} was not found`,
+			);
+			console.error(error);
+			for (const msg of msgs) {
+				msg.retry({ delaySeconds: calculateExponentialBackoff(msg.attempts) });
+			}
+			continue;
+		}
+
+		const files = msgs.map<string>((msg) => PurgeUrlSchema.parse(msg.body).url);
+
+		try {
+			await client.cache.purge({
+				zone_id: zone.id,
+				files,
+			});
+		} catch (cause) {
+			console.error("[Cache Purge URL] Zone ID could not be retrieved", cause);
+			for (const msg of msgs) {
+				msg.retry({ delaySeconds: calculateExponentialBackoff(msg.attempts) });
+			}
+			continue;
+		}
+
+		for (const msg of msgs) {
+			msg.ack();
+		}
+	}
 }
 
 export default {
