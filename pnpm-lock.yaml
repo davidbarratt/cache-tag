@@ -120,10 +120,6 @@ importers:
         version: 3.67.1(@cloudflare/workers-types@4.20240725.0)
 
   workers/watcher:
-    dependencies:
-      tracking-query-params-registry:
-        specifier: github:mpchadwick/tracking-query-params-registry
-        version: https://codeload.github.com/mpchadwick/tracking-query-params-registry/tar.gz/e02782673a18c47846b6640a38df121443cc985c
     devDependencies:
       '@cloudflare/vitest-pool-workers':
         specifier: ^0.4.16
