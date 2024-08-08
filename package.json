@@ -6,7 +6,8 @@
 		"prepare": "husky",
 		"test": "turbo test",
 		"cf-typegen": "turbo cf-typegen",
-		"typecheck": "turbo typecheck"
+		"typecheck": "turbo typecheck",
+		"lint": "turbo lint"
 	},
 	"devDependencies": {
 		"husky": "^9.1.4",
