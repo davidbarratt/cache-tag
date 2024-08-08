@@ -1,12 +1,13 @@
 {
-	"name": "producer",
+	"name": "controller",
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --local-upstream davidwbarratt.com --upstream-protocol https --remote",
 		"test": "vitest run",
-		"cf-typegen": "wrangler types"
+		"cf-typegen": "wrangler types",
+		"typecheck": "tsc"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.4.16",

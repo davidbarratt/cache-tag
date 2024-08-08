@@ -7,9 +7,6 @@ compatibility_flags = [ "nodejs_compat" ]
 routes = [
 	{ pattern = "davidwbarratt.com/*", zone_name = "davidwbarratt.com" }
 ]
-rules = [
-  { type = "Text", globs = ["**/*.csv"], fallthrough = true }
-]
 
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
