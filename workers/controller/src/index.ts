@@ -122,6 +122,7 @@ export default {
 		// then we wont know how to purge the response later.
 		const zone = request.headers.get("CF-Worker");
 		if (!zone) {
+			console.error("No Zone found");
 			return response;
 		}
 
