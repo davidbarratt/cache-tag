@@ -31,7 +31,11 @@ export default {
 
 		const response = await fetch(url, request);
 
-		if (response.headers.get("CF-Cache-Status") !== "MISS") {
+		// Only a `CF-Cache-STatus` of `MISS` or `EXPIRED` indicates that the resource was served by the Origin and
+		// is was cached.
+		// @see https://developers.cloudflare.com/cache/concepts/cache-responses/
+		const cacheStatus = response.headers.get("CF-Cache-Status");
+		if (cacheStatus !== "MISS" && cacheStatus !== "EXPIRED") {
 			return response;
 		}
 
