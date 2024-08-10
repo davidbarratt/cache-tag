@@ -1,13 +1,5 @@
 import Cloudflare from "cloudflare";
-import rawParams from "tracking-query-params-registry/_data/params.csv";
 import { z } from "zod";
-
-const params = new Set<string>(
-	rawParams.split("\n").map((line) => {
-		const end = line.indexOf(",");
-		return line.substring(0, end).trim();
-	}),
-);
 
 interface CaptureBody {
 	url: string;
@@ -16,6 +8,11 @@ interface CaptureBody {
 }
 
 const Purge = z.object({
+	tags: z.array(z.string()),
+});
+
+const Capture = z.object({
+	url: z.string().url(),
 	tags: z.array(z.string()),
 });
 
@@ -30,38 +27,42 @@ interface PurgeBody {
 	zone?: string | undefined;
 }
 
-async function handlePurgeRequest(request: Request, env: Env) {
+function apiToken(request: Request, env: Env): string {
 	const auth = request.headers.get("Authorization");
 	if (!auth) {
-		return Response.json(
-			{
-				error: "Missing Authorization header",
-			},
-			{ status: 401 },
-		);
+		throw new Error("Missing Authorization header");
 	}
 	const [scheme, token] = auth.split(" ");
 	if (scheme !== "Bearer") {
-		return Response.json(
-			{
-				error: "Authorization scheme is not Bearer",
-			},
-			{ status: 401 },
-		);
+		throw new Error("Authorization scheme is not Bearer");
 	}
 
 	// Needs at least `Cache Purge:Purge, Zone:Read" permissions.
 	if (token !== env.API_TOKEN) {
+		throw new Error("Provided token does not match the `API_TOKEN` secret.");
+	}
+
+	return token;
+}
+
+async function handlePurgeRequest(
+	request: Request,
+	env: Env,
+): Promise<Response> {
+	let token: string;
+	try {
+		token = apiToken(request, env);
+	} catch (e) {
 		return Response.json(
 			{
-				error: "Provided token does not match the `API_TOKEN` secret.",
+				error: String(e),
 			},
 			{ status: 401 },
 		);
 	}
 
 	const client = new Cloudflare({
-		apiToken: env.API_TOKEN,
+		apiToken: token,
 	});
 
 	const { status } = await client.user.tokens.verify();
@@ -99,58 +100,64 @@ async function handlePurgeRequest(request: Request, env: Env) {
 	return new Response("", { status: 202 });
 }
 
+async function handleCaptureRequest(
+	request: Request,
+	env: Env,
+): Promise<Response> {
+	// Since this worker can be called over the internet, we must at least verify that the token matches the secret,
+	// but we don't need to verify that it's usable right now.
+	try {
+		apiToken(request, env);
+	} catch (e) {
+		return Response.json(
+			{
+				error: String(e),
+			},
+			{ status: 401 },
+		);
+	}
+
+	// If there is no zone on the request,
+	// then we wont know how to purge the response later.
+	const zone = request.headers.get("CF-Worker");
+	if (!zone) {
+		return Response.json(
+			{
+				error: "Missing CF-Worker Header",
+			},
+			{ status: 400 },
+		);
+	}
+
+	const { url, tags } = Capture.parse(await request.json());
+
+	const capture: CaptureBody = {
+		url,
+		zone,
+		tags,
+	};
+
+	await env.CACHE_CAPTURE.send(capture, { contentType: "json" });
+
+	return new Response("", { status: 202 });
+}
+
 export default {
 	async fetch(request, env) {
 		// Remove any tracking params to increase the cache hit rate.
 		const url = new URL(request.url);
 
-		if (request.method === "POST" && url.pathname === "/.cloudflare/purge") {
-			return handlePurgeRequest(request, env);
+		if (request.method !== "POST") {
+			return new Response("", { status: 404 });
 		}
 
-		if (url.searchParams.size > 0) {
-			for (const key of url.searchParams.keys()) {
-				if (params.has(key)) {
-					url.searchParams.delete(key);
-				}
-			}
+		switch (url.pathname) {
+			case "/purge":
+				return handlePurgeRequest(request, env);
+			case "/capture":
+				return handleCaptureRequest(request, env);
+			default:
+				return new Response("", { status: 404 });
 		}
-
-		const response = await fetch(url, request);
-
-		// If there is no zone on the request,
-		// then we wont know how to purge the response later.
-		const zone = request.headers.get("CF-Worker");
-		if (!zone) {
-			console.error("No Zone found");
-			return response;
-		}
-
-		if (response.headers.get("CF-Cache-Status") !== "MISS") {
-			return response;
-		}
-
-		if (!response.headers.has("X-Cache-Tag")) {
-			return response;
-		}
-
-		const rawTags = response.headers.get("X-Cache-Tag");
-
-		if (!rawTags) {
-			return response;
-		}
-
-		// A set here removes any duplicates.
-		const tags = new Set<string>(rawTags.split(",").map((tag) => tag.trim()));
-
-		const capture: CaptureBody = {
-			url: response.url,
-			zone,
-			tags: Array.from(tags),
-		};
-
-		await env.CACHE_CAPTURE.send(capture, { contentType: "json" });
-
-		return response;
 	},
 } satisfies ExportedHandler<Env>;

@@ -24,5 +24,8 @@
 		"typescript-eslint": "^8.0.1",
 		"vitest": "~1.5.3",
 		"wrangler": "^3.67.1"
+	},
+	"dependencies": {
+		"tracking-query-params-registry": "github:mpchadwick/tracking-query-params-registry"
 	}
 }

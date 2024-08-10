@@ -4,6 +4,9 @@ main = "src/index.ts"
 compatibility_date = "2024-07-18"
 workers_dev = false
 compatibility_flags = [ "nodejs_compat" ]
+rules = [
+  { type = "Text", globs = ["**/*.csv"], fallthrough = true }
+]
 routes = [
 	{ pattern = "davidwbarratt.com/*", zone_name = "davidwbarratt.com" }
 ]
@@ -20,8 +23,8 @@ routes = [
 # - https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 # Note: Use secrets to store sensitive data.
 # - https://developers.cloudflare.com/workers/configuration/secrets/
-# [vars]
-# MY_VARIABLE = "production_value"
+[vars]
+CACHE_CONTROLLER = "https://cache-tag.davidbarratt.workers.dev"
 
 # Bind the Workers AI model catalog. Run machine learning models, powered by serverless GPUs, on Cloudflare’s global network
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#workers-ai
@@ -105,9 +108,9 @@ routes = [
 
 # Bind another Worker service. Use this binding to call another Worker without network overhead.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-[[services]]
-binding = "CACHE_CONTROLLER"
-service = "cache-tag"
+# [[services]]
+# binding = "CACHE_CONTROLLER"
+# service = "cache-tag"
 
 # Bind a Vectorize index. Use to store and query vector embeddings for semantic search, classification and other vector search use-cases.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#vectorize-indexes
