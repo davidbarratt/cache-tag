@@ -89,11 +89,11 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 		let query: D1PreparedStatement;
 		if (zone) {
 			query = env.DB.prepare(
-				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
+				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE tag.value IN (${tags.map(() => "?").join(", ")})`,
 			).bind(...tags);
 		} else {
 			query = env.DB.prepare(
-				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE url.zone = ? tag.value IN (${tags.map(() => "?").join(", ")}) ORDER BY url.value`,
+				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE url.zone = ? tag.value IN (${tags.map(() => "?").join(", ")})`,
 			).bind(zone, ...tags);
 		}
 
