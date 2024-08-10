@@ -44,7 +44,7 @@ async function createHash(message: string) {
 async function cacheCapture(batch: MessageBatch, env: Env) {
 	const deleteTags = env.DB.prepare("DELETE FROM tag WHERE url = ?");
 	const insertUrl = env.DB.prepare(
-		"INSERT OR REAPLACE INTO url(id, zone, value) VALUES(?, ?, ?)",
+		"INSERT OR REPLACE INTO url(id, zone, value) VALUES(?, ?, ?)",
 	);
 	const insertTag = env.DB.prepare("INSERT INTO tag(url, value) VALUES (?, ?)");
 
