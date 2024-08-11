@@ -105,7 +105,7 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 
 		// Re-queue all of the tags as URLs.
 		// sendBatch only allows for a maximum of 100 messages.
-		const promises: ReturnType<typeof env.CACHE_PURGE_URL.sendBatch>[] = [];
+		const promises: ReturnType<typeof env.DB.batch>[] = [];
 		for (const urlChunk of chunks(results, 100)) {
 			promises.push(
 				env.CACHE_PURGE_URL.sendBatch(
@@ -118,22 +118,21 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 							contentType: "json",
 						}),
 					),
-				),
+				).then(() => {
+					const ids = urlChunk.map<string>(({ id }) => id);
+					return env.DB.batch([
+						env.DB.prepare(
+							`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
+						).bind(...ids),
+						env.DB.prepare(
+							`DELETE FROM url WHERE id IN (${ids.map(() => "?").join(", ")})`,
+						).bind(...ids),
+					]);
+				}),
 			);
 		}
 
 		await Promise.all(promises);
-
-		const ids = results.map<string>(({ id }) => id);
-
-		await env.DB.batch([
-			env.DB.prepare(
-				`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
-			).bind(...ids),
-			env.DB.prepare(
-				`DELETE FROM url WHERE id IN (${ids.map(() => "?").join(", ")})`,
-			).bind(...ids),
-		]);
 
 		for (const msg of msgs) {
 			msg.ack();

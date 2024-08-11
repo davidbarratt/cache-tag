@@ -92,7 +92,7 @@ queue = "cache-capture"
 
 [[queues.consumers]]
 queue = "cache-purge-tag"
-max_batch_size = 90 # The queue limit is 100, but the D1 binding limit is 100 and sometimes we need a few more params.
+max_batch_size = 95 # The queue limit is 100, but the D1 binding limit is 100 and sometimes we need a few more (i.e. for the zone).
 
 [[queues.consumers]]
 queue = "cache-purge-url"
