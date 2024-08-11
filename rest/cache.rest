@@ -3,5 +3,5 @@ Authorization: Bearer {{$dotenv API_TOKEN}}
 Content-Type: application/json
 
 {
-	"tags": ["config:block_list"]
+	"tags": ["http_response"]
 }
