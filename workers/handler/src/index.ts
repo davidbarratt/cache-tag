@@ -126,11 +126,14 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 
 		const ids = results.map<string>(({ id }) => id);
 
-		await env.DB.prepare(
-			`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
-		)
-			.bind(...ids)
-			.run();
+		await env.DB.batch([
+			env.DB.prepare(
+				`DELETE FROM tag WHERE url IN (${ids.map(() => "?").join(", ")})`,
+			).bind(...ids),
+			env.DB.prepare(
+				`DELETE FROM url WHERE id IN (${ids.map(() => "?").join(", ")})`,
+			).bind(...ids),
+		]);
 
 		for (const msg of msgs) {
 			msg.ack();
