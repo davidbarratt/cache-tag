@@ -92,7 +92,7 @@ queue = "cache-capture"
 
 [[queues.consumers]]
 queue = "cache-purge-tag"
-max_batch_size = 100
+max_batch_size = 90
 
 [[queues.consumers]]
 queue = "cache-purge-url"
