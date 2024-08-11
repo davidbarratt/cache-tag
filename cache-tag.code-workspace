@@ -12,6 +12,10 @@
 			"name": "Watcher",
 			"path": "workers/watcher",
 		},
+		{
+			"name": "REST",
+			"path": "rest",
+		},
 	],
 	"settings": {},
 }

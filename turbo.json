@@ -8,6 +8,9 @@
 			"cache": false
 		},
 		"typecheck": {},
-		"lint": {}
+		"lint": {},
+		"tail": {
+			"persistent": true
+		}
 	}
 }

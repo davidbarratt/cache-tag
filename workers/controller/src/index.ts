@@ -86,7 +86,7 @@ async function handlePurgeRequest(
 			tag,
 			zone,
 		},
-		contentType: "text",
+		contentType: "json",
 	}));
 
 	// sendBatch only allows for a maximum of 100 messages.

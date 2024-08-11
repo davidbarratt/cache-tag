@@ -8,7 +8,8 @@
 		"test": "vitest run",
 		"cf-typegen": "wrangler types",
 		"typecheck": "tsc",
-		"lint": "eslint ."
+		"lint": "eslint .",
+		"tail": "wrangler tail"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.4.16",

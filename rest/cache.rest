@@ -1,0 +1,7 @@
+POST {{$dotenv CACHE_CONTROLLER}}/.cloudflare/purge
+Authorization: Bearer {{$dotenv API_TOKEN}}
+Content-Type: application/json
+
+{
+	"tags": ["node:39"]
+}
