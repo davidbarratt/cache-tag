@@ -107,18 +107,18 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 		// sendBatch only allows for a maximum of 100 messages.
 		const promises: ReturnType<typeof env.DB.batch>[] = [];
 		for (const urlChunk of chunks(results, 100)) {
+			const batch = urlChunk.map<
+				MessageSendRequest<z.infer<typeof PurgeUrlSchema>>
+			>((data) => ({
+				body: {
+					url: data.value,
+					zone: data.zone,
+				},
+				contentType: "json",
+			}));
+			console.debug("[Cache Purge Tag] Send Batch", batch);
 			promises.push(
-				env.CACHE_PURGE_URL.sendBatch(
-					urlChunk.map<MessageSendRequest<z.infer<typeof PurgeUrlSchema>>>(
-						(data) => ({
-							body: {
-								url: data.value,
-								zone: data.zone,
-							},
-							contentType: "json",
-						}),
-					),
-				).then(() => {
+				env.CACHE_PURGE_URL.sendBatch(batch).then(() => {
 					const ids = urlChunk.map<string>(({ id }) => id);
 					return env.DB.batch([
 						env.DB.prepare(
