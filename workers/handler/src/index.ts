@@ -186,6 +186,7 @@ async function cachePurgeUrl(batch: MessageBatch, env: Env) {
 		const files = msgs.map<string>((msg) => PurgeUrlSchema.parse(msg.body).url);
 
 		try {
+			console.debug("[Cache Purge URL] Purging", files);
 			await client.cache.purge({
 				zone_id: zone.id,
 				files,
