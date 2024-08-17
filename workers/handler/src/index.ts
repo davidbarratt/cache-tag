@@ -116,7 +116,10 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 				},
 				contentType: "json",
 			}));
-			console.debug("[Cache Purge Tag] Send Batch", batch);
+			console.debug(
+				"[Cache Purge Tag] Send Batch",
+				batch.map(({ body }) => body),
+			);
 			promises.push(
 				env.CACHE_PURGE_URL.sendBatch(batch).then(() => {
 					const ids = urlChunk.map<string>(({ id }) => id);
