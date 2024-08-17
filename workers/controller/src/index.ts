@@ -92,6 +92,10 @@ async function handlePurgeRequest(
 	// sendBatch only allows for a maximum of 100 messages.
 	const promises: ReturnType<typeof env.CACHE_PURGE_TAG.sendBatch>[] = [];
 	for (const messageChunks of chunks(messages, 100)) {
+		console.debug(
+			"[Cache Purge Request] Send Batch",
+			messageChunks.map(({ body }) => body),
+		);
 		promises.push(env.CACHE_PURGE_TAG.sendBatch(messageChunks));
 	}
 
