@@ -93,15 +93,32 @@ async function cachePurgeTag(batch: MessageBatch, env: Env) {
 			).bind(...tags);
 		} else {
 			query = env.DB.prepare(
-				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE url.zone = ? tag.value IN (${tags.map(() => "?").join(", ")})`,
+				`SELECT DISTINCT url.id AS id, url.zone AS zone, url.value AS value FROM url LEFT JOIN tag ON url.id = tag.url WHERE url.zone = ? AND tag.value IN (${tags.map(() => "?").join(", ")})`,
 			).bind(zone, ...tags);
 		}
 
-		const { results } = await query.run<{
-			id: string;
-			zone: string;
-			value: string;
-		}>();
+		let results: Awaited<
+			ReturnType<
+				typeof query.run<{
+					id: string;
+					zone: string;
+					value: string;
+				}>
+			>
+		>["results"];
+		try {
+			({ results } = await query.run<{
+				id: string;
+				zone: string;
+				value: string;
+			}>());
+		} catch (cause) {
+			console.error("[Cache Purge Tag] Query Failed", cause);
+			for (const msg of msgs) {
+				msg.retry({ delaySeconds: calculateExponentialBackoff(msg.attempts) });
+			}
+			continue;
+		}
 
 		// Re-queue all of the tags as URLs.
 		// sendBatch only allows for a maximum of 100 messages.
