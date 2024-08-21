@@ -77,6 +77,7 @@ async function handlePurgeRequest(
 	}
 
 	const { tags } = Purge.parse(await request.json());
+	console.debug("[Cache Purge Request] Purge Tags", tags);
 
 	// If no zone is present, then all zones will be purged.
 	const zone = request.headers.get("CF-Worker") ?? undefined;
