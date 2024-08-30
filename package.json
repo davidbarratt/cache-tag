@@ -1,23 +1,23 @@
 {
-	"name": "cache-tag",
-	"description": "Cache Tag Cloudflare Workers",
-	"license": "AGPL-3.0-or-later",
-	"scripts": {
-		"prepare": "husky",
-		"test": "turbo test",
-		"cf-typegen": "turbo cf-typegen",
-		"typecheck": "turbo typecheck",
-		"lint": "turbo lint",
-		"tail": "turbo tail"
-	},
-	"devDependencies": {
-		"husky": "^9.1.4",
-		"lint-staged": "^15.2.7",
-		"prettier": "^3.3.3",
-		"turbo": "^2.0.12"
-	},
-	"lint-staged": {
-		"**/*": "prettier --write --ignore-unknown"
-	},
-	"packageManager": "pnpm@9.7.0"
+  "name": "cache-tag",
+  "description": "Cache Tag Cloudflare Workers",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "prepare": "husky",
+    "test": "turbo test",
+    "cf-typegen": "turbo cf-typegen",
+    "typecheck": "turbo typecheck",
+    "lint": "turbo lint",
+    "tail": "turbo tail"
+  },
+  "devDependencies": {
+    "husky": "^9.1.4",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.3",
+    "turbo": "^2.1.0"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "packageManager": "pnpm@9.7.0"
 }
