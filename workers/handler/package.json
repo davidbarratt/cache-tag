@@ -1,33 +1,33 @@
 {
-	"name": "handler",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev --local-upstream davidwbarratt.com --upstream-protocol https --remote",
-		"test": "vitest run",
-		"cf-typegen": "wrangler types",
-		"typecheck": "tsc",
-		"lint": "eslint .",
-		"tail": "wrangler tail"
-	},
-	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.4.16",
-		"@cloudflare/workers-types": "^4.20240725.0",
-		"@eslint/js": "^9.8.0",
-		"@types/eslint-config-prettier": "^6.11.3",
-		"@types/eslint__js": "^8.42.3",
-		"@vitest/runner": "~1.5.3",
-		"@vitest/snapshot": "~1.5.3",
-		"eslint": "^9.8.0",
-		"eslint-config-prettier": "^9.1.0",
-		"typescript": "^5.5.4",
-		"typescript-eslint": "^8.0.1",
-		"vitest": "~1.5.3",
-		"wrangler": "^3.67.1"
-	},
-	"dependencies": {
-		"cloudflare": "^3.5.0",
-		"zod": "^3.23.8"
-	}
+  "name": "handler",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --local-upstream davidwbarratt.com --upstream-protocol https --remote",
+    "test": "vitest run",
+    "cf-typegen": "wrangler types",
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.4.26",
+    "@cloudflare/workers-types": "^4.20240821.1",
+    "@eslint/js": "^9.9.1",
+    "@types/eslint-config-prettier": "^6.11.3",
+    "@types/eslint__js": "^8.42.3",
+    "@vitest/runner": "~1.5.3",
+    "@vitest/snapshot": "~1.5.3",
+    "eslint": "^9.9.1",
+    "eslint-config-prettier": "^9.1.0",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.3.0",
+    "vitest": "~1.5.3",
+    "wrangler": "^3.72.3"
+  },
+  "dependencies": {
+    "cloudflare": "^3.5.0",
+    "zod": "^3.23.8"
+  }
 }
