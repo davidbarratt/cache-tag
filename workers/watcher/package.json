@@ -5,7 +5,6 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev --local-upstream davidwbarratt.com --upstream-protocol https --remote",
-    "test": "vitest run",
     "cf-typegen": "wrangler types",
     "typecheck": "tsc",
     "lint": "eslint .",

@@ -111,3 +111,10 @@ queue = "cache-purge-tag"
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[env.test]
+vars = { API_TOKEN = "test" }
+queues.producers = [
+  { binding = "CACHE_CAPTURE", queue = "cache-capture" },
+  { binding = "CACHE_PURGE_TAG", queue = "cache-purge-tag" },
+]
