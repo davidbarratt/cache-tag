@@ -61,6 +61,17 @@ async function handlePurgeRequest(
     );
   }
 
+  const { data } = Purge.safeParse(await request.json());
+  if (!data) {
+    return Response.json(
+      {
+        error: "Malformed request",
+      },
+      { status: 400 },
+    );
+  }
+  const { tags } = data;
+
   const client = new Cloudflare({
     apiToken: token,
   });
@@ -76,7 +87,6 @@ async function handlePurgeRequest(
     );
   }
 
-  const { tags } = Purge.parse(await request.json());
   console.debug("[Cache Purge Request] Purge Tags", tags);
 
   // If no zone is present, then all zones will be purged.
