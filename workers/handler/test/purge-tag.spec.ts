@@ -69,7 +69,6 @@ it("passes when no URLs are found", async () => {
   const sendBatch = vi
     .spyOn(env.CACHE_PURGE_URL, "sendBatch")
     .mockResolvedValue();
-  const id = "test";
   const url = "https://example.com";
   const zone = "example.com";
   const tag = "example";
