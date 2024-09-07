@@ -115,3 +115,17 @@ max_batch_size = 30
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+[env.test]
+vars = { API_TOKEN = "test" }
+d1_databases = [
+  { binding = "DB", database_name = "cache-tag", database_id = "49a13934-d832-4521-bcdf-7127b8f8f16b" }
+]
+queues.producers = [
+  { binding = "CACHE_PURGE_URL", queue = "cache-purge-url" },
+]
+queues.consumers = [
+  { queue = "cache-capture" },
+  { queue = "cache-purge-tag", max_batch_size = 95  },
+  { queue = "cache-purge-url", max_batch_size = 30 },
+]

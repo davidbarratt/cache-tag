@@ -2,10 +2,6 @@ import { randomBytes } from "node:crypto";
 import { env, SELF } from "cloudflare:test";
 import { it, expect, vi } from "vitest";
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-// const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
-
 interface CacheTagPurge {
   tag: string;
   zone?: string;
