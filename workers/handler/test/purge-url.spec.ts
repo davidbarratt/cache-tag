@@ -19,17 +19,14 @@ interface CacheUrlPurge {
 }
 
 vi.mock("cloudflare", () => ({
-  default: vi.fn().mockImplementation(
-    () =>
-      console.log("HELLO") || {
-        zones: {
-          list: zoneList,
-        },
-        cache: {
-          purge: cachePurge,
-        },
-      },
-  ),
+  default: vi.fn().mockImplementation(() => ({
+    zones: {
+      list: zoneList,
+    },
+    cache: {
+      purge: cachePurge,
+    },
+  })),
 }));
 
 afterEach(() => {
