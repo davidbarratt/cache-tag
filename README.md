@@ -35,6 +35,10 @@ The worker also exposes a `/.cloudflare/purge` endpoint that allows tags to be p
 to the zone in which the request is made too. For example, a purge request to `https://example.com/.cloudflare/purge`
 would only purge resources from the `example.com` zone.
 
-- [Watcher](./workers/watcher/)
-- [Controller](./workers/controller/)
-- [Handler](./workers/handler/)
+#### [Controller](./workers/controller/)
+
+_@todo_
+
+#### [Handler](./workers/handler/)
+
+_@todo_
