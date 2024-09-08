@@ -46,20 +46,24 @@ there is no way to know what zone a resource is being cached in from a
 [Worker](https://developers.cloudflare.com/workers/).
 
 To mitigate this problem, we can leverage the
-[CF-Worker](https://developers.cloudflare.com/fundamentals/reference/http-request-headers/#cf-worker) which gets added
-to outbound requests from a [Worker](https://developers.cloudflare.com/workers/). Unfortunately this header does not
-exist when using [Service Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/).
-The only way to retrieve the header is by making a request to the [Worker](https://developers.cloudflare.com/workers/)
-on the provided [workers.dev subdomain](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
+[CF-Worker](https://developers.cloudflare.com/fundamentals/reference/http-request-headers/#cf-worker) header which gets
+added to outbound requests from a [Worker](https://developers.cloudflare.com/workers/). Unfortunately, this header does
+not exist when using
+[Service Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/). The only way to
+retrieve the header is by making a request to the [worker](https://developers.cloudflare.com/workers/) on the provided
+[workers.dev subdomain](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
 
-The [Controller](./workers/controller/) exists primarily as an intermediary between [Watcher](./workers/watcher/) and [Handler](./workers/handler/) to collect zone information. It is **not** included as a part of [Handler](./workers/handler/) in order to ensure that the [Worker](https://developers.cloudflare.com/workers/) is collocated in the
+The [Controller](./workers/controller/) exists primarily as an intermediary between [Watcher](./workers/watcher/) and [Handler](./workers/handler/) to collect [zone](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones)
+information. It is **not** included as a part of [Handler](./workers/handler/) in order to ensure that the
+[worker](https://developers.cloudflare.com/workers/) is collocated in the
 [same data center](https://developers.cloudflare.com/workers/configuration/smart-placement/) as
 [Watcher](./workers/watcher/).
 
-The worker also exposes a `/purge` endpoint that allows tags to be purged. This endpoint matches the
-[interface of the Cloudflare endpoint](https://developers.cloudflare.com/api/operations/zone-purge#purge-cached-content-by-tag-host-or-prefix), but only allows `tags`. Since no
-[zone](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones) information is provided, matching
-resources from **all** zones will be purged.
+The [worker](https://developers.cloudflare.com/workers/) also exposes a `/purge` endpoint that allows tags to be purged. This endpoint matches the
+[interface of the Cloudflare endpoint](https://developers.cloudflare.com/api/operations/zone-purge#purge-cached-content-by-tag-host-or-prefix), but only allows `tags`. If no
+[zone](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones) information is provided
+(via the [CF-Worker](https://developers.cloudflare.com/fundamentals/reference/http-request-headers/#cf-worker) header),
+matching resources from **all** zones will be purged.
 
 #### [Handler](./workers/handler/)
 
