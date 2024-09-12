@@ -96,12 +96,13 @@ overkill for my purposes. I'm happy to accept PRs that make life easier.
 
 I chose to use the `API_TOKEN` [secret](https://developers.cloudflare.com/workers/configuration/secrets/) for
 authentication/authorization to the [Controller](./workers/controller/) and to use the same token to make requests to
-the Cloudflare API. This simplified the approach by only having to have a single secret in the worker and sharing that
+the [Cloudflare API](https://developers.cloudflare.com/api/). This simplified the approach by only having to have a single secret in the worker and sharing that
 secret with the Origin server. This allows the origin to make requests to the
 [Cloudflare API](https://developers.cloudflare.com/api/) or the [Worker](https://developers.cloudflare.com/workers/)
 seamlessly.
 
-The minimum permissions needed are:
+The minimum [API Token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) permissions needed
+are:
 
 - [Zone Read](https://developers.cloudflare.com/fundamentals/api/reference/permissions/#:~:text=zone%20level%20settings.-,Zone%20Read,-Grants%20read%20access)
 - [Cache Purge](https://developers.cloudflare.com/fundamentals/api/reference/permissions/#:~:text=Management%20feedback.-,Cache%20Purge,-Grants%20access%20to)
