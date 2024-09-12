@@ -113,7 +113,7 @@ for you.
 
 ## Cloudflare Setup
 
-Finally, there is a bit of setup in [Cloudflare](https://www.cloudflare.com/). This is identical to the setup for the
+Finally, there is some setup in [Cloudflare](https://www.cloudflare.com/) that is identical to the setup for the
 [standard cache tag purging](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-by-tags/)
 
 1. Ensure that the origin is
