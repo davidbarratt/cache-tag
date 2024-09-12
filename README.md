@@ -94,6 +94,33 @@ It is [licensed under the AGPL-3.0 license](./LICENSE.md) so you are free to mod
 I thought about using [Terraform](https://www.terraform.io/) in order to make it easier for others to deploy on their
 own, but it seemed like overkill for my purposes. I'm happy to accept PRs that make life easier.
 
+### Origin Setup
+
+In addition to running the suite of [Cloudflare Workers](https://developers.cloudflare.com/workers/), there is a bit of
+work on the origin server that needs to be done. Thankfully, this is effectively the same as the setup for the
+[standard cache tag purging](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-by-tags/)
+
+1. On cacheable responses, add a `X-Cache-Tag` header in the same format as the
+   [standard `Cache-Tag` header](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-by-tags/#add-cache-tag-http-response-headers)
+2. When a change occurs, use the `/.cloudflare/purge` endpoint on [Watcher](./workers/watcher/) (or for all
+   [zones](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones), the `/purge` endpoint on
+   [Controller](./workers/controller/)) to
+   [purge by tag](https://developers.cloudflare.com/api/operations/zone-purge#purge-cached-content-by-tag-host-or-prefix).
+
+If you are using [Drupal](https://www.drupal.org/), you can install and configure the
+[Cloudflare Worker Purge](https://www.drupal.org/project/cloudflare_worker_purge) module and these steps will be done
+for you.
+
+## Cloudflare Setup
+
+Finally, there is a bit of setup in [Cloudflare](https://www.cloudflare.com/). This is identical to the setup for the
+[standard cache tag purging](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-by-tags/)
+
+1. Ensure that the origin is
+   [proxied through Cloudflare](https://developers.cloudflare.com/dns/manage-dns-records/reference/proxied-dns-records/).
+2. Create a [Cache Rule](https://developers.cloudflare.com/cache/how-to/cache-rules/) and ensure that
+   the appropriate resources are cached.
+
 ## Authentication
 
 I chose to use the `API_TOKEN` [secret](https://developers.cloudflare.com/workers/configuration/secrets/) for
