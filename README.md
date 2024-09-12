@@ -61,10 +61,11 @@ included as a part of [Handler](./workers/handler/) in order to ensure that the
 [Watcher](./workers/watcher/).
 
 The [worker](https://developers.cloudflare.com/workers/) also exposes a `/purge` endpoint that allows tags to be purged.
-This endpoint matches the [interface of the Cloudflare endpoint](https://developers.cloudflare.com/api/operations/zone-purge#purge-cached-content-by-tag-host-or-prefix), but only allows `tags`. If no
-[zone](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones) information is provided
-(via the [CF-Worker](https://developers.cloudflare.com/fundamentals/reference/http-request-headers/#cf-worker) header),
-matching resources from **all** zones will be purged.
+This endpoint matches the
+[interface of the Cloudflare endpoint](https://developers.cloudflare.com/api/operations/zone-purge#purge-cached-content-by-tag-host-or-prefix), but only allows `tags`. If no
+[zone](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones) information is provided (via the
+[CF-Worker](https://developers.cloudflare.com/fundamentals/reference/http-request-headers/#cf-worker) header), matching
+resources from **all** zones will be purged.
 
 After receiving and validating requests to either the `/capture` or `/purge` endpoints, the
 [worker](https://developers.cloudflare.com/workers/) adds the requests to the `cache-capture` and `cache-purge-tag`
@@ -80,7 +81,8 @@ tags are stored in the [D1](https://developers.cloudflare.com/d1/) database.
 A message received from [Controller](./workers/controller/) in the `cache-purge-tag` queue results in the URLs being
 looked up in the [D1](https://developers.cloudflare.com/d1/) database from the provided tag, and re-queing those URLs by
 adding each one to the `cache-purge-url` queue. Since this will result in the resource being eventually removed from the
-cache, the URL and all tags associated with it are removed from the [D1](https://developers.cloudflare.com/d1/) database.
+cache, the URL and all tags associated with it are removed from the [D1](https://developers.cloudflare.com/d1/)
+database.
 
 Finally, when a message is received from the `cache-purge-url` queue, the URLs are
 [purged with Cloudflare's API](https://developers.cloudflare.com/api/operations/zone-purge#purge-cached-content-by-url).
@@ -88,18 +90,18 @@ Finally, when a message is received from the `cache-purge-url` queue, the URLs a
 ## Usage
 
 I am not aware of a good way to distribute this application for use on your own other than forking it and modifying it.
-It is [licensed under the AGPL-3.0 license](./LICENSE.md) so you are free to modify it under the temrs of that license.
-I thought about using Terraform in order to make it easier for others to deploy on their own, but it seemed like
-overkill for my purposes. I'm happy to accept PRs that make life easier.
+It is [licensed under the AGPL-3.0 license](./LICENSE.md) so you are free to modify it under the terms of that license.
+I thought about using [Terraform](https://www.terraform.io/) in order to make it easier for others to deploy on their
+own, but it seemed like overkill for my purposes. I'm happy to accept PRs that make life easier.
 
 ## Authentication
 
 I chose to use the `API_TOKEN` [secret](https://developers.cloudflare.com/workers/configuration/secrets/) for
 authentication/authorization to the [Controller](./workers/controller/) and to use the same token to make requests to
-the [Cloudflare API](https://developers.cloudflare.com/api/). This simplified the approach by only having to have a single secret in the worker and sharing that
-secret with the Origin server. This allows the origin to make requests to the
-[Cloudflare API](https://developers.cloudflare.com/api/) or the [Worker](https://developers.cloudflare.com/workers/)
-seamlessly.
+the [Cloudflare API](https://developers.cloudflare.com/api/). This simplified the approach by only having to have a
+single secret in the worker and sharing that secret with the Origin server. This allows the origin to make requests to
+the [Cloudflare API](https://developers.cloudflare.com/api/) or the
+[Worker](https://developers.cloudflare.com/workers/) seamlessly.
 
 The minimum [API Token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) permissions needed
 are:
